@@ -1,31 +1,27 @@
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-/**
- * Classe que implementa o algoritmo de busca em largura (BFS) para encontrar
- * a saída do  labirinto.
- */
-public class BFS {
-
-
-    public ArrayList<Posicao> Fila;
+import java.util.Queue;
+public class Busca_profundidade  {
+        
+    public Queue<Posicao> Pilha;
     public ArrayList<Nodo> Arvore;
     public boolean[][] visitados;
 
     public void Inicializa(Labirinto labirinto) {
 
-        Fila = new ArrayList<>();
+        Pilha = new ArrayDeque<>();
         Arvore = new ArrayList<>();
         visitados = new boolean[labirinto.getDimX()][labirinto.getDimY()];
         Nodo raiz = new Nodo(null, labirinto.getPosicaoAtual());
         Arvore.add(raiz);
-        visitados[labirinto.getPosicaoAtual().getX()][labirinto.getPosicaoAtual().getY()] = true;
-        AdicionaNaFila(labirinto.getPosicaoAtual());
+        AdicionaNaPilha(labirinto.getPosicaoAtual());
     }
     public Posicao[] busca(Labirinto labirinto) {
 
-        while (!Fila.isEmpty()) {
+        while (!Pilha.isEmpty()) {
 
-            Posicao p = Fila.get(0);
-            Fila.remove(0);
+            Posicao p = Pilha.poll();
+            
 
             if (p.comparaCom(labirinto.getPosicaoSaida())) {
                 System.out.println("Saída encontrada: " + p.toString());
@@ -46,7 +42,7 @@ public class BFS {
                     Nodo nodoPai = getNodoPorValor(p); // Retorna o nodo Pai que contém a posição p
                     Nodo nodoFilho = new Nodo(nodoPai, pos);
                     Arvore.add(nodoFilho);
-                    AdicionaNaFila(pos);
+                    AdicionaNaPilha(pos);
                 }
             }
 
@@ -56,25 +52,32 @@ public class BFS {
 
     }
 
-    public void AdicionaNaFila(Posicao p) {
-        Fila.addLast(p);
+    public void AdicionaNaPilha(Posicao p) {
+        Pilha.add(p);
     }
-
     public Nodo getNodoPorValor(Posicao p ){
         for (Nodo nodo : Arvore) {
-            if (((Posicao) nodo.getValor()).comparaCom(p)) {
-                return nodo;
+            if (nodo.getValor() instanceof Posicao) {
+                Posicao pos = (Posicao) nodo.getValor();
+                if (pos.comparaCom(p)) {
+                    return nodo;
+                }
             }
         }
-        return null;
+        return null; // Retorna null se não encontrar o nodo correspondente
     }
     public ArrayList<Posicao> getCaminho(Posicao p) {
         ArrayList<Posicao> caminho = new ArrayList<>();
-        Nodo nodo = getNodoPorValor(p);
-        while (nodo != null) {
-            caminho.add(0, (Posicao) nodo.getValor());
-            nodo = nodo.getPai();
+        Nodo nodoAtual = getNodoPorValor(p);
+
+        while (nodoAtual != null) {
+            if (nodoAtual.getValor() instanceof Posicao) {
+                caminho.add(0, (Posicao) nodoAtual.getValor()); // Adiciona no início da lista
+            }
+            nodoAtual = nodoAtual.getPai();
         }
+
         return caminho;
     }
+
 }
