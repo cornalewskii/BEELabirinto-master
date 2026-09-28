@@ -1,83 +1,49 @@
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Queue;
-public class Busca_profundidade  {
-        
-    public Queue<Posicao> Pilha;
-    public ArrayList<Nodo> Arvore;
-    public boolean[][] visitados;
 
-    public void Inicializa(Labirinto labirinto) {
+/** Busca em profundidade: explora cada ramo antes de voltar ao anterior. */
+public class Busca_profundidade extends AbstractBusca {
+    private boolean[][] visitados;
 
-        Pilha = new ArrayDeque<>();
-        Arvore = new ArrayList<>();
+    public Busca_profundidade(Labirinto labirinto, boolean debug) {
+        super(labirinto, debug);
+    }
+
+    public Posicao[] buscar(boolean aEstrela, boolean aEstrelaAlt) {
+        raiz = new Nodo(null, labirinto.getPosicaoAtual());
         visitados = new boolean[labirinto.getDimX()][labirinto.getDimY()];
-        Nodo raiz = new Nodo(null, labirinto.getPosicaoAtual());
-        Arvore.add(raiz);
-        AdicionaNaPilha(labirinto.getPosicaoAtual());
-    }
-    public Posicao[] busca(Labirinto labirinto) {
 
-        while (!Pilha.isEmpty()) {
-
-            Posicao p = Pilha.poll();
-            
-
-            if (p.comparaCom(labirinto.getPosicaoSaida())) {
-                System.out.println("Saída encontrada: " + p.toString());
-                ArrayList<Posicao> caminho = getCaminho(p);
-                System.out.println("Caminho até a saída:");
-                for (Posicao pos : caminho) {
-                    System.out.println("  " + pos.toString());
-                }
-                return caminho.toArray(new Posicao[0]);
-            }
-
-            ArrayList<Posicao> expansao = labirinto.getExpansao(p);
-
-            for (Posicao pos : expansao) {
-                if (!visitados[pos.getX()][pos.getY()]) {
-
-                    visitados[pos.getX()][pos.getY()] = true;
-                    Nodo nodoPai = getNodoPorValor(p); // Retorna o nodo Pai que contém a posição p
-                    Nodo nodoFilho = new Nodo(nodoPai, pos);
-                    Arvore.add(nodoFilho);
-                    AdicionaNaPilha(pos);
-                }
-            }
-
+        Nodo solucao = expandir(raiz, aEstrela, aEstrelaAlt);
+        if (solucao == null) {
+            if (debug) System.out.println("Busca em profundidade: saída não encontrada.");
+            return null;
         }
-        System.out.println("Busca finalizada. Saída não encontrada.");
+        return construirCaminho(solucao);
+    }
+
+    public Nodo expandir(Nodo nodo, boolean aEstrela, boolean aEstrelaAlt) {
+        Posicao atual = (Posicao) nodo.getValor();
+        if (visitados[atual.getX()][atual.getY()]) return null;
+        visitados[atual.getX()][atual.getY()] = true;
+
+        if (atual.comparaCom(labirinto.getPosicaoSaida())) {
+            if (debug) System.out.println("Saída encontrada: " + atual);
+            return nodo;
+        }
+
+        for (Posicao proxima : labirinto.getExpansao(atual)) {
+            if (!visitados[proxima.getX()][proxima.getY()]) {
+                Nodo solucao = expandir(new Nodo(nodo, proxima), aEstrela, aEstrelaAlt);
+                if (solucao != null) return solucao;
+            }
+        }
         return null;
-
     }
 
-    public void AdicionaNaPilha(Posicao p) {
-        Pilha.add(p);
-    }
-    public Nodo getNodoPorValor(Posicao p ){
-        for (Nodo nodo : Arvore) {
-            if (nodo.getValor() instanceof Posicao) {
-                Posicao pos = (Posicao) nodo.getValor();
-                if (pos.comparaCom(p)) {
-                    return nodo;
-                }
-            }
-        }
-        return null; // Retorna null se não encontrar o nodo correspondente
-    }
-    public ArrayList<Posicao> getCaminho(Posicao p) {
+    private Posicao[] construirCaminho(Nodo solucao) {
         ArrayList<Posicao> caminho = new ArrayList<>();
-        Nodo nodoAtual = getNodoPorValor(p);
-
-        while (nodoAtual != null) {
-            if (nodoAtual.getValor() instanceof Posicao) {
-                caminho.add(0, (Posicao) nodoAtual.getValor()); // Adiciona no início da lista
-            }
-            nodoAtual = nodoAtual.getPai();
+        for (Nodo nodo = solucao; nodo != null; nodo = nodo.getPai()) {
+            caminho.add(0, (Posicao) nodo.getValor());
         }
-
-        return caminho;
+        return caminho.toArray(new Posicao[0]);
     }
-
 }

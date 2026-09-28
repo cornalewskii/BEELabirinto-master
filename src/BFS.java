@@ -1,80 +1,61 @@
 import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Queue;
 /**
  * Classe que implementa o algoritmo de busca em largura (BFS) para encontrar
  * a saída do  labirinto.
  */
-public class BFS {
+public class BFS extends AbstractBusca {
+    private Queue<Nodo> fila;
+    private boolean[][] visitados;
 
+    public BFS(Labirinto labirinto, boolean debug) {
+        super(labirinto, debug);
+    }
 
-    public ArrayList<Posicao> Fila;
-    public ArrayList<Nodo> Arvore;
-    public boolean[][] visitados;
-
-    public void Inicializa(Labirinto labirinto) {
-
-        Fila = new ArrayList<>();
-        Arvore = new ArrayList<>();
+    public Posicao[] buscar(boolean aEstrela, boolean aEstrelaAlt) {
+        raiz = new Nodo(null, labirinto.getPosicaoAtual());
+        fila = new ArrayDeque<>();
         visitados = new boolean[labirinto.getDimX()][labirinto.getDimY()];
-        Nodo raiz = new Nodo(null, labirinto.getPosicaoAtual());
-        Arvore.add(raiz);
-        visitados[labirinto.getPosicaoAtual().getX()][labirinto.getPosicaoAtual().getY()] = true;
-        AdicionaNaFila(labirinto.getPosicaoAtual());
-    }
-    public Posicao[] busca(Labirinto labirinto) {
 
-        while (!Fila.isEmpty()) {
+        Posicao inicio = (Posicao) raiz.getValor();
+        visitados[inicio.getX()][inicio.getY()] = true;
+        fila.add(raiz);
 
-            Posicao p = Fila.get(0);
-            Fila.remove(0);
-
-            if (p.comparaCom(labirinto.getPosicaoSaida())) {
-                System.out.println("Saída encontrada: " + p.toString());
-                ArrayList<Posicao> caminho = getCaminho(p);
-                System.out.println("Caminho até a saída:");
-                for (Posicao pos : caminho) {
-                    System.out.println("  " + pos.toString());
-                }
-                return caminho.toArray(new Posicao[0]);
+        while (!fila.isEmpty()) {
+            Nodo solucao = expandir(fila.remove(), aEstrela, aEstrelaAlt);
+            if (solucao != null) {
+                return construirCaminho(solucao);
             }
-
-            ArrayList<Posicao> expansao = labirinto.getExpansao(p);
-
-            for (Posicao pos : expansao) {
-                if (!visitados[pos.getX()][pos.getY()]) {
-
-                    visitados[pos.getX()][pos.getY()] = true;
-                    Nodo nodoPai = getNodoPorValor(p); // Retorna o nodo Pai que contém a posição p
-                    Nodo nodoFilho = new Nodo(nodoPai, pos);
-                    Arvore.add(nodoFilho);
-                    AdicionaNaFila(pos);
-                }
-            }
-
         }
-        System.out.println("Busca finalizada. Saída não encontrada.");
+
+        if (debug) System.out.println("Busca em largura: saída não encontrada.");
         return null;
-
     }
 
-    public void AdicionaNaFila(Posicao p) {
-        Fila.addLast(p);
-    }
+    public Nodo expandir(Nodo nodo, boolean aEstrela, boolean aEstrelaAlt) {
+        Posicao atual = (Posicao) nodo.getValor();
+        if (atual.comparaCom(labirinto.getPosicaoSaida())) {
+            if (debug) System.out.println("Saída encontrada: " + atual);
+            return nodo;
+        }
 
-    public Nodo getNodoPorValor(Posicao p ){
-        for (Nodo nodo : Arvore) {
-            if (((Posicao) nodo.getValor()).comparaCom(p)) {
-                return nodo;
+        for (Posicao proxima : labirinto.getExpansao(atual)) {
+            int x = proxima.getX();
+            int y = proxima.getY();
+            if (!visitados[x][y]) {
+                visitados[x][y] = true;
+                fila.add(new Nodo(nodo, proxima));
             }
         }
         return null;
     }
-    public ArrayList<Posicao> getCaminho(Posicao p) {
+
+    private Posicao[] construirCaminho(Nodo solucao) {
         ArrayList<Posicao> caminho = new ArrayList<>();
-        Nodo nodo = getNodoPorValor(p);
-        while (nodo != null) {
+        for (Nodo nodo = solucao; nodo != null; nodo = nodo.getPai()) {
             caminho.add(0, (Posicao) nodo.getValor());
-            nodo = nodo.getPai();
         }
-        return caminho;
+        return caminho.toArray(new Posicao[0]);
     }
 }
