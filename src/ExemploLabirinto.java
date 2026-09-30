@@ -78,24 +78,37 @@ public class ExemploLabirinto {
 
 				BuscaComInformacao buscaComInformacaoTodos =
 					new BuscaComInformacao(labirinto, debug);
+					long TempoInicial = System.nanoTime();
                     caminho = buscaComInformacaoTodos.buscar(true, false);
+					long TempoFinal = System.nanoTime();
+					long TempoDecorrido = (TempoFinal - TempoInicial);
 					labirinto.print(caminho);
+					System.out.println("Tempo decorrido: " + TempoDecorrido + " Nanosegundos");
 
 				System.out.println("\n======================================");
 				System.out.println("        Busca em Largura (BFS)");
 				System.out.println("======================================");
 
 			     	BFS buscaEmLarguraTodos = new BFS(labirinto, debug);
+					TempoInicial = System.nanoTime();
 					caminho = buscaEmLarguraTodos.buscar(false, false);
+					TempoFinal = System.nanoTime();
 					labirinto.print(caminho);
+					TempoDecorrido = (TempoFinal - TempoInicial);
+					System.out.println("Tempo decorrido: " + TempoDecorrido + " Nanosegundos");	
+
 
 				System.out.println("\n======================================");
 				System.out.println("        Busca em Profundidade (DFS)");
 				System.out.println("======================================");
 
 					Busca_profundidade buscaEmProfundidadeTodos = new Busca_profundidade(labirinto, debug);
+					TempoInicial = System.nanoTime();
 					caminho = buscaEmProfundidadeTodos.buscar(false, false);
+					TempoFinal = System.nanoTime();
 					labirinto.print(caminho);
+					TempoDecorrido = (TempoFinal - TempoInicial);
+					System.out.println("Tempo decorrido: " + TempoDecorrido + " Nanosegundos");
 
 				break;
 			default:
